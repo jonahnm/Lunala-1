@@ -1,9 +1,10 @@
 #define TESLA_INIT_IMPL // If you have more than one file using the tesla header, only define this in the main one
 #include <tesla.hpp>    // The Tesla Header
 
-
+//define stuff
+tsl::elm::ToggleListItem *waterinktoggle = new tsl::elm::ToggleListItem("Water Ink",false);
 class GuiTest : public tsl::Gui {
-public:
+public: 
     GuiTest() { }
 
     // Called when this Gui gets loaded to create the UI
@@ -11,13 +12,13 @@ public:
     virtual tsl::elm::Element* createUI() override {
         // A OverlayFrame is the base element every overlay consists of. This will draw the default Title and Subtitle.
         // If you need more information in the header or want to change it's look, use a HeaderOverlayFrame.
-        auto frame = new tsl::elm::OverlayFrame("Tesla Example", "v1.3.1");
-
-        // A list that can contain sub elements and handles scrolling
-        auto list = new tsl::elm::List();
-
+        auto frame = new tsl::elm::OverlayFrame("Lunala - The front end for solgaleo","v0.01");
+auto list = new tsl::elm::List();
+        // A list that can contain sub elements anshadeer how is me do commit 
         // Create and add a new list item to the list
-        list->addItem(new tsl::elm::ListItem("Default List Item"));
+        list->addItem(new tsl::elm::CategoryHeader("Fun Stuff"));
+        list->addItem(new tsl::elm::CategoryHeader("Destructive Stuff"));
+        list->addItem(waterinktoggle);
 
         // Add the list to the frame for it to be drawn
         frame->setContent(list);
@@ -28,13 +29,15 @@ public:
 
     // Called once every frame to update values
     virtual void update() override {
-
+bool togglewaterinkstate = waterinktoggle->getState();
+if(togglewaterinkstate == true) {
+    //placeholder
+}else if(togglewaterinkstate == false) {
+    //placeholder
+}
     }
 
     // Called once every frame to handle inputs not handled by other UI elements
-    virtual bool handleInput(u64 keysDown, u64 keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) override {
-        return false;   // Return true here to singal the inputs have been consumed
-    }
 };
 
 class OverlayTest : public tsl::Overlay {

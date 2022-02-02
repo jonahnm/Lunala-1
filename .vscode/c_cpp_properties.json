@@ -8,7 +8,6 @@
                 "C:/devkitPro/libnx/include/**",
                 "C:/devkitPro/portlibs/switch/include/**",
                 "C:/devkitPro/portlibs/switch/include/freetype2/**",
-                "${workspaceFolder}/include/**",
                 "${workspaceFolder}/libs/libtesla/include/**"
             ],
             "defines": [
