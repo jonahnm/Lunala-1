@@ -1,20 +1,28 @@
 #define TESLA_INIT_IMPL // If you have more than one file using the tesla header, only define this in the main one
 #include <tesla.hpp>    // The Tesla Header
-
+#include "dmntcht.h"
+#include "buf_type.hpp"
+#include "access.hpp"
+#include <switch.h>
 //define stuff
-tsl::elm::ToggleListItem *waterinktoggle = new tsl::elm::ToggleListItem("Water Ink",false);
-class GuiTest : public tsl::Gui {
-public: 
-    GuiTest() { }
+DmntCheatProcessMetadata cheatprocessmeta;
+solgaleo::Buffer something;
+MemoryInfo skylineaddr;
+tsl::elm::ToggleListItem *waterinktoggle = new tsl::elm::ToggleListItem("Water Ink", false);
+class GuiTest : public tsl::Gui
+{
+public:
+    GuiTest() {}
 
     // Called when this Gui gets loaded to create the UI
     // Allocate all elements on the heap. libtesla will make sure to clean them up when not needed anymore
-    virtual tsl::elm::Element* createUI() override {
+    virtual tsl::elm::Element *createUI() override
+    {
         // A OverlayFrame is the base element every overlay consists of. This will draw the default Title and Subtitle.
         // If you need more information in the header or want to change it's look, use a HeaderOverlayFrame.
-        auto frame = new tsl::elm::OverlayFrame("Lunala - The front end for solgaleo","v0.01");
-auto list = new tsl::elm::List();
-        // A list that can contain sub elements anshadeer how is me do commit 
+        auto frame = new tsl::elm::OverlayFrame("Lunala - The front end for solgaleo", "v0.01");
+        auto list = new tsl::elm::List();
+        // A list that can contain sub elements anshadeer how is me do commit
         // Create and add a new list item to the list
         list->addItem(new tsl::elm::CategoryHeader("Fun Stuff"));
         list->addItem(new tsl::elm::CategoryHeader("Destructive Stuff"));
@@ -22,38 +30,59 @@ auto list = new tsl::elm::List();
 
         // Add the list to the frame for it to be drawn
         frame->setContent(list);
-        
+
         // Return the frame to have it become the top level element of this Gui
         return frame;
     }
 
     // Called once every frame to update values
-    virtual void update() override {
-bool togglewaterinkstate = waterinktoggle->getState();
-if(togglewaterinkstate == true) {
-    //placeholder
-}else if(togglewaterinkstate == false) {
-    //placeholder
-}
+    virtual void update() override
+    {
+        bool togglewaterinkstate = waterinktoggle->getState();
+        dmntchtQueryCheatProcessMemory(&skylineaddr,/*?*/);
+        solgaleo::Access Access = solgaleo::Access::GetAccess(something);
+        if (Access.buf.magic != 0x420BA115)
+        {
+            return;
+        }
+        waterinktoggle->setState(Access.buf.eraseinkenabled);
+        if (togglewaterinkstate == true)
+        {
+            Access.buf.eraseinkenabled = true;
+        }
+        else if (togglewaterinkstate == false)
+        {
+            Access.buf.eraseinkenabled = false;
+        }
     }
-
     // Called once every frame to handle inputs not handled by other UI elements
 };
 
-class OverlayTest : public tsl::Overlay {
+class OverlayTest : public tsl::Overlay
+{
 public:
-                                             // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
-    virtual void initServices() override {}  // Called at the start to initialize all services necessary for this Overlay
-    virtual void exitServices() override {}  // Callet at the end to clean up all services previously initialized
+    // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
+    virtual void initServices() override {} // Called at the start to initialize all services necessary for this Overlay
+    virtual void exitServices() override {} // Callet at the end to clean up all services previously initialized
 
-    virtual void onShow() override {}    // Called before overlay wants to change from invisible to visible state
-    virtual void onHide() override {}    // Called before overlay wants to change from visible to invisible state
+    virtual void onShow() override {} // Called before overlay wants to change from invisible to visible state
+    virtual void onHide() override {} // Called before overlay wants to change from visible to invisible state
 
-    virtual std::unique_ptr<tsl::Gui> loadInitialGui() override {
-        return initially<GuiTest>();  // Initial Gui to load. It's possible to pass arguments to it's constructor like this
+    virtual std::unique_ptr<tsl::Gui> loadInitialGui() override
+    {
+        return initially<GuiTest>(); // Initial Gui to load. It's possible to pass arguments to it's constructor like this
     }
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
+    dmntchtInitialize();
+    bool hascheatprocess;
+    dmntchtHasCheatProcess(&hascheatprocess);
+    if (!hascheatprocess)
+    {
+        dmntchtForceOpenCheatProcess();
+    }
+    dmntchtGetCheatProcessMetadata(&cheatprocessmeta);
     return tsl::loop<OverlayTest>(argc, argv);
 }
