@@ -7,12 +7,13 @@
 //define stuff
 DmntCheatProcessMetadata cheatprocessmeta;
 solgaleo::Buffer something;
-MemoryInfo skylineaddr;
+MemoryInfo skylineaddr{};
+MemoryInfo skylinedataddr{};
 tsl::elm::ToggleListItem *waterinktoggle = new tsl::elm::ToggleListItem("Water Ink", false);
 class GuiTest : public tsl::Gui
 {
 public:
-    GuiTest() {}
+    GuiTest() {};
 
     // Called when this Gui gets loaded to create the UI
     // Allocate all elements on the heap. libtesla will make sure to clean them up when not needed anymore
@@ -27,7 +28,6 @@ public:
         list->addItem(new tsl::elm::CategoryHeader("Fun Stuff"));
         list->addItem(new tsl::elm::CategoryHeader("Destructive Stuff"));
         list->addItem(waterinktoggle);
-
         // Add the list to the frame for it to be drawn
         frame->setContent(list);
 
@@ -39,20 +39,20 @@ public:
     virtual void update() override
     {
         bool togglewaterinkstate = waterinktoggle->getState();
-        dmntchtQueryCheatProcessMemory(&skylineaddr,/*?*/);
-        solgaleo::Access Access = solgaleo::Access::GetAccess(something);
-        if (Access.buf.magic != 0x420BA115)
-        {
+        dmntchtReadCheatProcessMemory(skylinedataddr.addr,&something,sizeof(solgaleo::Buffer));;
+        if (something.magic != 0x420BA115) {
             return;
         }
-        waterinktoggle->setState(Access.buf.eraseinkenabled);
+        if(something.is_writing) {
+        return;
+        }
         if (togglewaterinkstate == true)
         {
-            Access.buf.eraseinkenabled = true;
+           something.eraseinkenabled = true;
         }
         else if (togglewaterinkstate == false)
         {
-            Access.buf.eraseinkenabled = false;
+            something.eraseinkenabled = false;
         }
     }
     // Called once every frame to handle inputs not handled by other UI elements
@@ -65,8 +65,39 @@ public:
     virtual void initServices() override {} // Called at the start to initialize all services necessary for this Overlay
     virtual void exitServices() override {} // Callet at the end to clean up all services previously initialized
 
-    virtual void onShow() override {} // Called before overlay wants to change from invisible to visible state
-    virtual void onHide() override {} // Called before overlay wants to change from visible to invisible state
+    virtual void onShow() override {
+        dmntchtInitialize();
+    bool hascheatprocess;
+    dmntchtHasCheatProcess(&hascheatprocess);
+    if (!hascheatprocess)
+    {
+        dmntchtForceOpenCheatProcess();
+    }
+    dmntchtGetCheatProcessMetadata(&cheatprocessmeta);
+    int i = 0;
+    skylineaddr.addr = cheatprocessmeta.main_nso_extents.base;
+    do
+    {
+        uintptr_t end = skylineaddr.addr + skylineaddr.size;
+        dmntchtQueryCheatProcessMemory(&skylineaddr, end);
+        if (skylineaddr.type == MemType_CodeStatic)
+        {
+            i++;
+        }
+    } while (i < 3);
+    i = 0;
+    skylinedataddr.addr = skylineaddr.addr;
+    do
+    {
+        uintptr_t end = skylinedataddr.addr + skylinedataddr.size;
+        dmntchtQueryCheatProcessMemory(&skylineaddr, end);
+    } while((skylinedataddr.perm & Perm_Rw) == 0);
+    dmntchtReadCheatProcessMemory(skylinedataddr.addr,&something,sizeof(solgaleo::Buffer));
+    waterinktoggle->setState(something.eraseinkenabled);
+    } // Called before overlay wants to change from invisible to visible state
+    virtual void onHide() override {
+        dmntchtExit();
+    } // Called before overlay wants to change from visible to invisible state
 
     virtual std::unique_ptr<tsl::Gui> loadInitialGui() override
     {
@@ -76,13 +107,5 @@ public:
 
 int main(int argc, char **argv)
 {
-    dmntchtInitialize();
-    bool hascheatprocess;
-    dmntchtHasCheatProcess(&hascheatprocess);
-    if (!hascheatprocess)
-    {
-        dmntchtForceOpenCheatProcess();
-    }
-    dmntchtGetCheatProcessMetadata(&cheatprocessmeta);
     return tsl::loop<OverlayTest>(argc, argv);
 }
