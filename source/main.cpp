@@ -93,7 +93,7 @@ public:
 break;
             }
         }
-    }
+    }while(true);
     if(icheck > 3) {
         return;
     }
