@@ -62,10 +62,7 @@ class OverlayTest : public tsl::Overlay
 {
 public:
     // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
-    virtual void initServices() override {} // Called at the start to initialize all services necessary for this Overlay
-    virtual void exitServices() override {} // Callet at the end to clean up all services previously initialized
-
-    virtual void onShow() override {
+    virtual void initServices() override {
         dmntchtInitialize();
     bool hascheatprocess;
     dmntchtHasCheatProcess(&hascheatprocess);
@@ -74,29 +71,37 @@ public:
         dmntchtForceOpenCheatProcess();
     }
     dmntchtGetCheatProcessMetadata(&cheatprocessmeta);
-    int i = 0;
+    } // Called at the start to initialize all services necessary for this Overlay
+    virtual void exitServices() override {
+        dmntchtExit();
+    } // Callet at the end to clean up all services previously initialized
+
+    virtual void onShow() override {
+    unsigned int i = 0;
     skylineaddr.addr = cheatprocessmeta.main_nso_extents.base;
     do
     {
         uintptr_t end = skylineaddr.addr + skylineaddr.size;
         dmntchtQueryCheatProcessMemory(&skylineaddr, end);
-        if (skylineaddr.type == MemType_CodeStatic)
+        if (skylineaddr.type == MemType_CodeStatic && skylineaddr.perm == Perm_Rx)
         {
             i++;
+            if(i == 3) {
+break;
+            }
         }
-    } while (i < 3);
+    } while (true);
     i = 0;
     skylinedataddr.addr = skylineaddr.addr;
     do
     {
         uintptr_t end = skylinedataddr.addr + skylinedataddr.size;
         dmntchtQueryCheatProcessMemory(&skylineaddr, end);
-    } while((skylinedataddr.perm & Perm_Rw) == 0);
+    } while(skylinedataddr.perm != Perm_Rw);
     dmntchtReadCheatProcessMemory(skylinedataddr.addr,&something,sizeof(solgaleo::Buffer));
     waterinktoggle->setState(something.eraseinkenabled);
     } // Called before overlay wants to change from invisible to visible state
     virtual void onHide() override {
-        dmntchtExit();
     } // Called before overlay wants to change from visible to invisible state
 
     virtual std::unique_ptr<tsl::Gui> loadInitialGui() override
