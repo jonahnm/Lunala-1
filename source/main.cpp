@@ -75,21 +75,28 @@ public:
     }
     dmntchtGetCheatProcessMetadata(&cheatprocessmeta);
     unsigned int i = 0;
+    unsigned int icheck = 0;
     skylineaddr.addr = cheatprocessmeta.main_nso_extents.base;
     do
     {
+        icheck = icheck+1
         uintptr_t end = skylineaddr.addr + skylineaddr.size;
         dmntchtQueryCheatProcessMemory(&skylineaddr, end);
+        if(icheck > 3) {
+            dmntchtExit();
+            break;
+        }
         if (skylineaddr.type == MemType_CodeStatic && skylineaddr.perm == Perm_Rx)
         {
-            i++;
+            i = i+1;
             if(i == 3) {
 break;
             }
         }
-    } while (true);
-    i = 0;
-    skylinedataddr.addr = skylineaddr.addr;
+    }
+    if(icheck > 3) {
+        return;
+    }
     do
     {
         uintptr_t end = skylinedataddr.addr + skylinedataddr.size;
