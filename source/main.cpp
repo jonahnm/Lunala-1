@@ -1,19 +1,36 @@
 #define TESLA_INIT_IMPL // If you have more than one file using the tesla header, only define this in the main one
 #include <tesla.hpp>    // The Tesla Header
-#include "dmntcht.h"
+#include "memory.hpp"
 #include "buf_type.hpp"
 #include "access.hpp"
 #include <switch.h>
+#include <sstream>
+#include <stdexcept>
+#include <stdlib.h>
 //define stuff
+#define _STRINGIFY(x) #x
+#define STRINGIFY(x) _STRINGIFY(x)
+#define TRY_THROW(x)                                                                             \
+    ({                                                                                           \
+        if (Result rc = (x); R_FAILED(rc)) {                                                     \
+           *((unsigned int*)0) = 0xDEADBEEF000; \
+        }                                                                                        \
+    })
 DmntCheatProcessMetadata cheatprocessmeta;
 solgaleo::Buffer something;
 MemoryInfo skylineaddr{};
 MemoryInfo skylinedataddr{};
+bool dmntchtinitfail = false;
 tsl::elm::ToggleListItem *waterinktoggle = new tsl::elm::ToggleListItem("Water Ink", false);
+tsl::elm::ListItem *status = new tsl::elm::ListItem("Status");
+tsl::elm::ListItem *result_ = new tsl::elm::ListItem("Result of status.");
+static constexpr auto JP_TID = 0x01003C700009C000;
+    static constexpr auto US_TID = 0x01003BC0000A0000;
+    static constexpr auto EU_TID = 0x0100F8F0000A2000;
 class GuiTest : public tsl::Gui
 {
 public:
-    GuiTest() {};
+    GuiTest(){};
 
     // Called when this Gui gets loaded to create the UI
     // Allocate all elements on the heap. libtesla will make sure to clean them up when not needed anymore
@@ -28,7 +45,9 @@ public:
         list->addItem(new tsl::elm::CategoryHeader("Fun Stuff"));
         list->addItem(new tsl::elm::CategoryHeader("Destructive Stuff"));
         list->addItem(waterinktoggle);
-        // Add the list to the frame for it to be drawn
+        list->addItem(status);
+        list->addItem(result_);
+        // Add the listreturn; to the frame for it to be drawn
         frame->setContent(list);
 
         // Return the frame to have it become the top level element of this Gui
@@ -37,76 +56,128 @@ public:
 
     // Called once every frame to update values
     virtual void update() override
-    {
-        bool togglewaterinkstate = waterinktoggle->getState();
-        dmntchtReadCheatProcessMemory(skylinedataddr.addr,&something,sizeof(solgaleo::Buffer));;
-        if (something.magic != 0x420BA115) {
+    if(!MemoryReader::gameIsRunning()) {
+        return;
+    }
+         unsigned int i = 0;
+        unsigned int icheck = 0;
+        uintptr_t end;
+        skylineaddr.addr = cheatprocessmeta.main_nso_extents.base;
+        do
+        {
+            icheck++;
+        end = skylineaddr.addr + skylineaddr.size;
+            dmntchtQueryCheatProcessMemory(&skylineaddr, end);
+            if (icheck > 3)
+            {
+                dmntchtExit();
+                break;
+            }
+            if (skylineaddr.type == MemType_CodeStatic && skylineaddr.perm == Perm_Rx)
+            {
+                i++;
+                if (i == 3)
+                {
+                    break;
+                }
+            }
+        } while (i <= 3);
+        if (icheck > 3)
+        {
+            status->setValue("Check Failed.");
             return;
         }
-        if(something.is_writing) {
-        return;
-        }
+
+        skylinedataddr.addr = skylineaddr.addr;
+        end = 0;
+        do
+        {
+            end = skylinedataddr.addr + skylinedataddr.size;
+            dmntchtQueryCheatProcessMemory(&skylinedataddr, end);
+        } while (skylinedataddr.perm != Perm_Rw);
+       something = MemoryReader::readDataFromAddr<solgaleo::Buffer>(skylinedataddr.addr);
+        bool togglewaterinkstate = waterinktoggle->getState();
+        if (something.magic != 0x420BA115)
+        {
+            status->setValue("Magic is invalid!");
+        }else if (something.is_writing)
+        {
+            status->setValue("The game is currently writing values.");
+        }else {
+        status->setValue("Ready to write values!");
         if (togglewaterinkstate == true)
         {
-           something.eraseinkenabled = true;
+            something.eraseinkenabled = true;
         }
         else if (togglewaterinkstate == false)
         {
             something.eraseinkenabled = false;
         }
+        }
     }
     // Called once every frame to handle inputs not handled by other UI elements
 };
-
 class OverlayTest : public tsl::Overlay
 {
 public:
     // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
-    virtual void initServices() override {} // Called at the start to initialize all services necessary for this Overlay
-    virtual void exitServices() override {} // Callet at the end to clean up all services previously initialized
 
-    virtual void onShow() override {
-        dmntchtInitialize();
-    bool hascheatprocess;
-    dmntchtHasCheatProcess(&hascheatprocess);
-    if (!hascheatprocess)
-    {
-        dmntchtForceOpenCheatProcess();
-    }
-    dmntchtGetCheatProcessMetadata(&cheatprocessmeta);
-    unsigned int i = 0;
-    unsigned int icheck = 0;
-    skylineaddr.addr = cheatprocessmeta.main_nso_extents.base;
-    do
-    {
-        icheck = icheck+1
-        uintptr_t end = skylineaddr.addr + skylineaddr.size;
-        dmntchtQueryCheatProcessMemory(&skylineaddr, end);
-        if(icheck > 3) {
-            dmntchtExit();
-            break;
-        }
-        if (skylineaddr.type == MemType_CodeStatic && skylineaddr.perm == Perm_Rx)
+         //dmntchtInitialize();
+         /*
+        if(ensurehasCheatProcess_()) {
+        unsigned int i = 0;
+        unsigned int icheck = 0;
+        uintptr_t end;
+        skylineaddr.addr = cheatprocessmeta.main_nso_extents.base;
+        do
         {
-            i = i+1;
-            if(i == 3) {
-break;
+            icheck++;
+        end = skylineaddr.addr + skylineaddr.size;
+            dmntchtQueryCheatProcessMemory(&skylineaddr, end);
+            if (icheck > 3)
+            {
+                dmntchtExit();
+                break;
             }
+            if (skylineaddr.type == MemType_CodeStatic && skylineaddr.perm == Perm_Rx)
+            {
+                i++;
+                if (i == 3)
+                {
+                    break;
+                }
+            }
+        } while (i <= 3);
+        if (icheck > 3)
+        {
+            status->setValue("Check Failed.");
+            return;
         }
-    }while(true);
-    if(icheck > 3) {
-        return;
+
+        skylinedataddr.addr = skylineaddr.addr;
+        end = 0;
+        do
+        {
+            end = skylinedataddr.addr + skylinedataddr.size;
+            dmntchtQueryCheatProcessMemory(&skylinedataddr, end);
+        } while (skylinedataddr.perm != Perm_Rw);
+        dmntchtReadCheatProcessMemory(skylinedataddr.addr, &something, sizeof(solgaleo::Buffer));
+        waterinktoggle->setState(something.eraseinkenabled);
+        }else {
+            status->setValue("Please Open Splatoon 2.");
+        }
+        */
     }
-    do
-    {
-        uintptr_t end = skylinedataddr.addr + skylinedataddr.size;
-        dmntchtQueryCheatProcessMemory(&skylineaddr, end);
-    } while(skylinedataddr.perm != Perm_Rw);
-    dmntchtReadCheatProcessMemory(skylinedataddr.addr,&something,sizeof(solgaleo::Buffer));
-    waterinktoggle->setState(something.eraseinkenabled);
-    } // Called before overlay wants to change from invisible to visible state
-    virtual void onHide() override {
+} // Called at the start to initialize all services necessary for this Overlay
+    virtual void exitServices() override {
         dmntchtExit();
+    };// Callet at the end to clean up all services previously initialized
+
+    virtual void onShow() override
+    {
+    } // Called before overlay wants to change from invisible to visible state
+    virtual void onHide() override
+    {
     } // Called before overlay wants to change from visible to invisible state
 
     virtual std::unique_ptr<tsl::Gui> loadInitialGui() override
