@@ -17,7 +17,6 @@
         }                                                                                        \
     })
 DmntCheatProcessMetadata cheatprocessmeta;
-solgaleo::Buffer something;
 MemoryInfo skylineaddr{};
 MemoryInfo skylinedataddr{};
 bool dmntchtinitfail = false;
@@ -55,7 +54,7 @@ public:
     }
 
     // Called once every frame to update values
-    virtual void update() override
+    virtual void update() override {
     if(!MemoryReader::gameIsRunning()) {
         return;
     }
@@ -70,7 +69,6 @@ public:
             dmntchtQueryCheatProcessMemory(&skylineaddr, end);
             if (icheck > 3)
             {
-                dmntchtExit();
                 break;
             }
             if (skylineaddr.type == MemType_CodeStatic && skylineaddr.perm == Perm_Rx)
@@ -95,7 +93,8 @@ public:
             end = skylinedataddr.addr + skylinedataddr.size;
             dmntchtQueryCheatProcessMemory(&skylinedataddr, end);
         } while (skylinedataddr.perm != Perm_Rw);
-       something = MemoryReader::readDataFromAddr<solgaleo::Buffer>(skylinedataddr.addr);
+       auto _temp = MemoryReader::readDataFromAddr<solgaleo::Buffer>((void*)skylinedataddr.addr);
+auto& something = *(solgaleo::Buffer*)(&_temp);
         bool togglewaterinkstate = waterinktoggle->getState();
         if (something.magic != 0x420BA115)
         {
@@ -167,10 +166,8 @@ public:
             status->setValue("Please Open Splatoon 2.");
         }
         */
-    }
-} // Called at the start to initialize all services necessary for this Overlay
+// Called at the start to initialize all services necessary for this Overlay
     virtual void exitServices() override {
-        dmntchtExit();
     };// Callet at the end to clean up all services previously initialized
 
     virtual void onShow() override

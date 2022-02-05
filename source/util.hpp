@@ -1,5 +1,4 @@
 #pragma once
-
 #include <sstream>
 #include <stdexcept>
 
@@ -21,7 +20,6 @@
 #define TRY_THROW(x)                                                                             \
     ({                                                                                           \
         if (Result rc = (x); R_FAILED(rc)) {                                                     \
-            std::stringstream errMsgSs;                                                          \
-            errMsgSs << __PRETTY_FUNCTION__ << " " STRINGIFY(x) " failed: 0x" << std::hex << rc; \
-            throw std::runtime_error(errMsgSs.str());                                            \
-        }                    
+           raise(SIGSEGV);                                           \
+        }                 \
+    })
