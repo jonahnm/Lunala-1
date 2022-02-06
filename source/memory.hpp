@@ -48,7 +48,6 @@ class MemoryReader {
     static constexpr auto JP_TID = 0x01003C700009C000;
     static constexpr auto US_TID = 0x01003BC0000A0000;
     static constexpr auto EU_TID = 0x0100F8F0000A2000;
-
     DmntCheatProcessMetadata m_dmntCheatProcessMetadata;
 
     auto ensureHasCheatProcess_() -> bool;
@@ -74,7 +73,9 @@ class MemoryReader {
 
    public:
     static inline auto gameIsRunning() { return getInstance().ensureHasCheatProcess_(); }
-
+static inline auto getmetadata() {
+    return getInstance().m_dmntCheatProcessMetadata;
+}
     template <typename T>
     static inline auto readDataFromAddr(void* address) {
         return getInstance().readData_<T>(reinterpret_cast<size_t>(address));
