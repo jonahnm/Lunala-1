@@ -8,21 +8,11 @@
 #include <stdexcept>
 #include <stdlib.h>
 //define stuff
-#define _STRINGIFY(x) #x
-#define STRINGIFY(x) _STRINGIFY(x)
-#define TRY_THROW(x)                                                                             \
-    ({                                                                                           \
-        if (Result rc = (x); R_FAILED(rc)) {                                                     \
-           *((unsigned int*)0) = 0xDEADBEEF000; \
-        }                                                                                        \
-    })
 DmntCheatProcessMetadata cheatprocessmeta;
 MemoryInfo skylineaddr{};
 MemoryInfo skylinedataddr{};
-bool dmntchtinitfail = false;
 tsl::elm::ToggleListItem *waterinktoggle = new tsl::elm::ToggleListItem("Water Ink", false);
 tsl::elm::ListItem *status = new tsl::elm::ListItem("Status");
-tsl::elm::ListItem *result_ = new tsl::elm::ListItem("Result of status.");
 static constexpr auto JP_TID = 0x01003C700009C000;
     static constexpr auto US_TID = 0x01003BC0000A0000;
     static constexpr auto EU_TID = 0x0100F8F0000A2000;
@@ -45,7 +35,6 @@ public:
         list->addItem(new tsl::elm::CategoryHeader("Destructive Stuff"));
         list->addItem(waterinktoggle);
         list->addItem(status);
-        list->addItem(result_);
         // Add the listreturn; to the frame for it to be drawn
         frame->setContent(list);
 
@@ -121,54 +110,9 @@ class OverlayTest : public tsl::Overlay
 public:
     // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
 
-         //dmntchtInitialize();
-         /*
-        if(ensurehasCheatProcess_()) {
-        unsigned int i = 0;
-        unsigned int icheck = 0;
-        uintptr_t end;
-        skylineaddr.addr = cheatprocessmeta.main_nso_extents.base;
-        do
-        {
-            icheck++;
-        end = skylineaddr.addr + skylineaddr.size;
-            dmntchtQueryCheatProcessMemory(&skylineaddr, end);
-            if (icheck > 3)
-            {
-                dmntchtExit();
-                break;
-            }
-            if (skylineaddr.type == MemType_CodeStatic && skylineaddr.perm == Perm_Rx)
-            {
-                i++;
-                if (i == 3)
-                {
-                    break;
-                }
-            }
-        } while (i <= 3);
-        if (icheck > 3)
-        {
-            status->setValue("Check Failed.");
-            return;
-        }
-
-        skylinedataddr.addr = skylineaddr.addr;
-        end = 0;
-        do
-        {
-            end = skylinedataddr.addr + skylinedataddr.size;
-            dmntchtQueryCheatProcessMemory(&skylinedataddr, end);
-        } while (skylinedataddr.perm != Perm_Rw);
-        dmntchtReadCheatProcessMemory(skylinedataddr.addr, &something, sizeof(solgaleo::Buffer));
-        waterinktoggle->setState(something.eraseinkenabled);
-        }else {
-            status->setValue("Please Open Splatoon 2.");
-        }
-        */
+        virtual void initServices() override {}
 // Called at the start to initialize all services necessary for this Overlay
-    virtual void exitServices() override {
-    };// Callet at the end to clean up all services previously initialized
+    virtual void exitServices() override {}// Callet at the end to clean up all services previously initialized
 
     virtual void onShow() override
     {
