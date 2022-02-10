@@ -13,13 +13,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bab86f4e-5621-43f8-beee-a4ec00a4974a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/source/dmntcht.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/source/service_guard.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/source/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/source/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/memory.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/memory.hpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/util.hpp" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,7 +83,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
     <property name="cidr.known.project.marker" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/source" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Solgaleo" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
@@ -116,7 +111,7 @@
       <workItem from="1644254885172" duration="7582000" />
       <workItem from="1644331990037" duration="5703000" />
       <workItem from="1644346023640" duration="997000" />
-      <workItem from="1644418230537" duration="9070000" />
+      <workItem from="1644418230537" duration="13610000" />
     </task>
     <servers />
   </component>

@@ -11,6 +11,16 @@ MemoryInfo skylinedataddr{};
 tsl::elm::ListItem *status = new tsl::elm::ListItem("Status");
 tsl::elm::ToggleListItem *waterinktoggle = new tsl::elm::ToggleListItem("Water Ink",false);
 tsl::elm::ListItem *result = new tsl::elm::ListItem("Result");
+int Sync_ = -1;
+void Sync() {
+    if(Sync_ == 4 || Sync_ == -1) {
+
+        if(waterinktoggle->getState() != something.eraseinkenabled) waterinktoggle->setState(something.eraseinkenabled);
+        Sync_ = 0;
+    }else {
+        Sync_++;
+    }
+}
 class GuiTest : public tsl::Gui {
 public:
     GuiTest() {}
@@ -92,7 +102,7 @@ public:
         } while(skylinedataddr.perm != Perm_Rw);
         dmntchtReadCheatProcessMemory(skylinedataddr.addr,&something,sizeof(solgaleo::Buffer));
         bool togglewaterinkstate = waterinktoggle->getState();
-        waterinktoggle->setState(something.eraseinkenabled);
+        Sync();
         Result R = dmntchtReadCheatProcessMemory(skylinedataddr.addr, &something, sizeof(solgaleo::Buffer));
         if(R_FAILED(R)) {
             status->setValue("Couldn't read game memory for some reason?");
